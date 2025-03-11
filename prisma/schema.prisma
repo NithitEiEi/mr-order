@@ -1,0 +1,156 @@
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Shop {
+  id         String       @id @default(uuid())
+  name       String       @unique    
+  user       String       @unique
+  open       Boolean      @default(false)
+  create     DateTime     @default(now())
+  account    String       @default("")
+  ingredient Ingredient[]
+  receipt    Receipt[]
+  menu       Menu[]
+  shop       Order[]
+}
+
+model Menu {
+  id       String        @id @default(uuid())
+  name     String
+  price    Float
+  shop     String
+  status   MenuStatus    @default(ENABLE)
+  Shop     Shop          @relation(fields: [shop], references: [id], onDelete: Cascade)
+  order    OrderDetail[]
+  recipe   Recipe[]
+}
+
+model Recipe {
+  menu       String     
+  ingredient String     
+  amount     Float
+  Menu       Menu       @relation(fields: [menu], references: [id], onDelete: Cascade)
+  Ingredient Ingredient @relation(fields: [ingredient], references: [id], onDelete: Cascade)
+  
+  @@id([menu, ingredient])
+}
+
+model Ingredient {
+  id        String        @id @default(uuid())
+  name      String       
+  unit      String
+  ages      Int
+  ages_unit IngredientAge
+  shop      String        
+  recipe    Recipe[]
+  stock     Stock[]
+  Shop      Shop          @relation(fields: [shop], references: [id], onDelete: Cascade)
+}
+
+model Stock {
+  id         String      @id @default(uuid())
+  add_date   DateTime    @default(now())
+  expire     DateTime    @default(now())
+  remain     Float
+  status     StockStatus @default(AVAILABLE)  
+  ingredient String
+  Ingredient Ingredient  @relation(fields: [ingredient], references: [id], onDelete: Cascade)
+}
+
+model Receipt {
+  id     String        @id @default(uuid())
+  date   DateTime      @default(now())
+  total  Float
+  shop   String
+  image  String        @default(uuid())
+  Shop   Shop          @relation(fields: [shop], references: [id], onDelete: Cascade)
+  detail ReceiptItem[]
+}
+
+model ReceiptItem {
+  id       String  @id @default(uuid())
+  receipt  String  
+  item     String
+  name     String
+  quantity Int
+  Receipt  Receipt @relation(fields: [receipt], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id       String        @id @default(uuid())
+  customer String
+  date     DateTime      @default(now())
+  payment  Payment?
+  address  String?
+  total    Float         @default(0)
+  remain   Float         @default(0)
+  process  OrderProcess  @default(PENDING)
+  shop     String
+  detail   OrderDetail[]
+  slip     Slip[]
+  Shop     Shop          @relation(fields: [shop], references: [id], onDelete: Cascade)
+}
+
+model OrderDetail {
+  id          String   @id @default(uuid())
+  menu        String   
+  amount      Int
+  order       String   
+  Menu        Menu     @relation(fields: [menu], references: [id], onDelete: Cascade)
+  Order       Order    @relation(fields: [order], references: [id], onDelete: Cascade)
+}
+
+model Slip {
+  id       String     @id @default(uuid())
+  receiver String
+  sender   String
+  amount   Float
+  date     DateTime   @default(now())
+  ref      String     @unique()
+  status   SlipStatus @default(NO_SLIP)
+  order    String     
+  Order    Order      @relation(fields: [order], references: [id], onDelete: Cascade)
+}
+
+enum StockStatus {
+  EXPIRE
+  AVAILABLE
+  OUT_OF_STOCK
+}
+
+enum Payment {
+  CASH
+  TRANSFER
+}
+
+enum SlipStatus {
+  INVALID
+  VALID
+  NO_SLIP
+}
+
+enum OrderProcess {
+  PENDING
+  DONE
+  COMPLETE
+  CANCEL
+}
+
+enum IngredientAge {
+  DAY
+  WEEK
+  MONTH
+  YEAR
+}
+
+enum MenuStatus {
+  ENABLE
+  DISABLE
+}

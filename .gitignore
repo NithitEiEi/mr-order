@@ -1,0 +1,7 @@
+.env
+
+/env
+
+app/upload
+
+__pycache__/
