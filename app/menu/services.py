@@ -14,14 +14,20 @@ async def get_menus (shop: str):
                 'status': "ENABLE"
             },
             include={
-                'recipe': {
-                    'include': {
-                        'Ingredient': True
-                    }
-                }
+                'recipe': True
             }
         )
         menus = [dump(menu) for menu in menus]
+        for menu in menus:
+            recipes = menu['recipe']
+            for recipe in recipes:
+                ingredient = await prisma.ingredient.find_first(
+                    where={
+                        'id': recipe['ingredient']
+                    }
+                )
+                recipe['name'] = ingredient.name
+
         return menus
 
 

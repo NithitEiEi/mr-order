@@ -11,7 +11,7 @@ router = APIRouter()
 async def get (id: str):
     try:
         shop = await services.get_shop(id)
-        return response(shop)
+        return response(shop) if shop else exception(404)
 
     except AttributeError as e:
         return exception(404)
