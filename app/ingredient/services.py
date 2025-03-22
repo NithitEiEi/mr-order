@@ -13,7 +13,11 @@ async def get_ingredients (shop: str):
                 'shop': shop
             },
             include={
-                'stock': True
+                'stock': {
+                    'where': {
+                        'status': 'AVAILABLE'
+                    }
+                }
             }
         )
 
@@ -48,7 +52,6 @@ async def update_ingredient (body: UpdateIngredient, id: str):
     try:
         await prisma.connect()
         data = dump(body)
-        print(type(data), data)
         ingredient = await prisma.ingredient.update(
             where={
                 'id': id
