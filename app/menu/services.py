@@ -27,6 +27,7 @@ async def get_menus (shop: str):
                     }
                 )
                 recipe['name'] = ingredient.name
+                recipe['unit'] = ingredient.unit
 
         return menus
 

@@ -11,10 +11,15 @@ async def get_order (shop: str):
         await prisma.connect()
         orders = await prisma.order.find_many(
             where={
-                'shop': shop
+                'shop': shop,
+                'process': {'in': ['PENDING', 'DONE']}
+            },
+            include={
+                'slip': True
             }
         )
-        orders = [dump(order, include={'customer', 'date', 'process'}) for order in orders]
+        orders = [dump(order, exclude={'shop'}) for order in orders]
+
         return orders
 
     finally:
@@ -82,10 +87,9 @@ async def get_oreder_usage (shop: str):
                 }
             )
             usage['name'] = ingredient.name
+            usage['unit'] = ingredient.unit
 
-        return {
-            'usage': usages
-        }
+        return usages
 
     finally:
         await prisma.disconnect()
