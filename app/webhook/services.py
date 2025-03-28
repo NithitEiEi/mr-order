@@ -95,7 +95,7 @@ async def webhook (body: WebhookBody):
             )
             old_order = dump(order, include={'payment', 'address', 'detail'}) if order else {}
             menus = [dump(menu, exclude={'shop'}) for menu in menus]
-            generate = classify_order(text, menus, old_order)
+            generate = await classify_order(text, menus, old_order)
 
             await prisma.disconnect()
             

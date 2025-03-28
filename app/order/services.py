@@ -86,8 +86,15 @@ async def get_oreder_usage (shop: str):
                     'id': usage['ingredient']
                 }
             )
+
+            stocks = await prisma.stock.find_many(
+                where={'ingredient': ingredient.id},
+            )
+
+            sum_stock = float(sum(stock.remain for stock in stocks))
             usage['name'] = ingredient.name
             usage['unit'] = ingredient.unit
+            usage['remain'] = sum_stock
 
         return usages
 
@@ -101,7 +108,6 @@ async def create_order (body: CreateOrder):
         data = dump(body, exclude={'detail'})
         details = body.detail
         details = [dump(detail) for detail in details]
-        print(details)
         async with prisma.tx() as transaction:
             result = await transaction.order.create(
                 data=data,
@@ -132,6 +138,22 @@ async def cancel_order (id: str):
             }
         )
         return dump(result)
+
+    finally:
+        await prisma.disconnect()
+
+async def complete_order(id: str):
+    try:
+        await prisma.connect()
+        order = await prisma.order.update(
+            where={
+                'id': id
+            },
+            data={
+                'process': "COMPLETE"
+            }
+        )
+        return dump(order)
 
     finally:
         await prisma.disconnect()

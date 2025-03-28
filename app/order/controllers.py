@@ -54,6 +54,15 @@ async def cancel (id: str):
     except Exception as e:
         return exception(500, e)
     
+@router.post('/order/{id}/complete')
+async def complete (id:str):
+    try:
+        order = await service.complete_order(id)
+        return response(order)
+    
+    except Exception as e:
+        return exception(500, e)
+    
 @router.post('/order/{id}/done')
 async def done (id: str):
     try:

@@ -76,8 +76,6 @@ async def create_slip(body: WebhookSlip):
                             "remain": remain
                         }
                     )
-
-                print(order)
                 return dump(order)
             
     finally:
