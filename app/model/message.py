@@ -11,7 +11,7 @@ client = OpenAI(
     api_key= os.getenv("LLM_API_KEY")
 )
 
-def classify_order (text: str, menus: list, order: dict):
+async def classify_order (text: str, menus: list, order: dict):
     input = f"""
         message: {text}
         old order: {order}
@@ -19,7 +19,7 @@ def classify_order (text: str, menus: list, order: dict):
         menus: {menus}
     """
 
-    completion = client.chat.completions.create(
+    completion = await client.chat.completions.create(
         model="mradermacher/openthaigpt1.5-7b-instruct-i1-GGUF",
         messages=[
             {"role": "system", "content": prompt},
