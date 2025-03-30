@@ -79,7 +79,8 @@ model ReceiptItem {
   receipt  String  
   item     String
   name     String
-  quantity Int
+  price    Float
+  quantity Float
   Receipt  Receipt @relation(fields: [receipt], references: [id], onDelete: Cascade)
 }
 

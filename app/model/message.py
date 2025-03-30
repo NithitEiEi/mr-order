@@ -19,7 +19,7 @@ async def classify_order (text: str, menus: list, order: dict):
         menus: {menus}
     """
 
-    completion = await client.chat.completions.create(
+    completion = client.chat.completions.create(
         model="mradermacher/openthaigpt1.5-7b-instruct-i1-GGUF",
         messages=[
             {"role": "system", "content": prompt},

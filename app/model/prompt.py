@@ -43,7 +43,7 @@ prompt = """
     {
         "intent": "make", # customer request for orders
         "payment": "CASH" / "TRANSFER", # payment method
-                                        # default "CASH"
+                                        # default "TRANSFER"
         "address": "..." # customer's address
                          # maybe formal address or just
                          # explain the places around
@@ -95,7 +95,7 @@ receipt_prompt = """
               # date default as today
     detail: [
       item: "", # ingredient ID exsit in the shop
-      name: "", # name of the ingredient
+      name: "", # name of the ingredient if thai gnerate thai alphabet not uft code like u0e21
       quantity: 1, # quantity of the items bill
       price: 1, # price of that item in bill
     ],

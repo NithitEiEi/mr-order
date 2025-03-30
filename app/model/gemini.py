@@ -6,7 +6,7 @@ load_dotenv()
 
 async def classify_img (image: bytes, prompt: str):
     client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-    response = await client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model="gemini-2.0-flash",
         contents=[prompt, image])
     

@@ -5,7 +5,8 @@ from pydantic import BaseModel
 class CreateItem(BaseModel):
     item: str
     name: str
-    quantity: int
+    price: float
+    quantity: float
 
 class UpdateItem(BaseModel):
     item: Optional[str] = None

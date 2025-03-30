@@ -30,6 +30,9 @@ async def create (file: UploadFile = File(...), shop: str = Form(...)):
         receipt = await service.create_receipt(file, shop)
         return response(receipt)
 
+    except ValueError as e:
+        return exception(400)
+
     except Exception as e:
         return exception(500, e)
 

@@ -1,4 +1,6 @@
+import os
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from shop.controllers import router as shop
 from menu.controllers import router as menu
 from slip.controllers import router as slip
@@ -10,6 +12,10 @@ from receipt.controllers import router as receipt
 from ingredient.controllers import router as ingredient
 
 app = FastAPI()
+
+upload_folder = os.path.join(os.getcwd(), 'upload')
+
+app.mount("/uploads", StaticFiles(directory=upload_folder), name="uploads")
 
 app.include_router(router=shop)
 app.include_router(router=menu)

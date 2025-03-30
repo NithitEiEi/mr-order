@@ -33,4 +33,5 @@ class UpdateOrder(BaseModel):
     address: Optional[str] = None
     process: Optional[OrderProcess] = None
     total: Optional[float] = None
+    remain: Optional[float] = None
     detail: Optional[list[CreateDetail]] = None

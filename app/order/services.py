@@ -104,8 +104,8 @@ async def get_oreder_usage (shop: str):
 async def create_order (body: CreateOrder):
     try:
         await prisma.connect()
-        
         data = dump(body, exclude={'detail'})
+        data['remain'] = body.total
         details = body.detail
         details = [dump(detail) for detail in details]
         async with prisma.tx() as transaction:

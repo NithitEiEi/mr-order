@@ -67,6 +67,13 @@ async def create_receipt (file: UploadFile, shop: str):
         result = re.sub('json', '', response, flags=re.IGNORECASE)
         result = result.strip("`")
         result = json.loads(result)
+
+        print(result)
+        print(not result['detail'])
+
+        if result['type'] != "receipt" or not result['detail']:
+            raise ValueError()
+
         total = 0
         for detail in result['detail']:
             total += detail['price']
@@ -78,7 +85,6 @@ async def create_receipt (file: UploadFile, shop: str):
         receipt = dump(result, exclude={'detail'})
         return_detail = dump(result, include={'detail'})
         details = dump(result, include={'detail'}).get('detail')
-        print(details)
 
         async with prisma.tx() as transaction:
             result = await transaction.receipt.create(
@@ -91,11 +97,12 @@ async def create_receipt (file: UploadFile, shop: str):
                 data=details
             )
 
-            path = os.path.join("/upload", f"{result.image}.jpg")
-            os.makedirs(os.path.dirname(path), exist_ok=True)
+            upload_path = os.path.join(os.getcwd(), "upload")
+            os.makedirs(upload_path, exist_ok=True)
+            path = os.path.join(upload_path, f"{result.image}.jpg")
             image.save(path)
         
-        return return_detail
+        return return_detail.get('detail')
 
     finally:
         await prisma.disconnect()
@@ -108,6 +115,12 @@ async def delete_receipt (id: str):
                 'id': id
             }
         )
+        upload_path = os.path.join(os.getcwd(), "upload")
+        path = os.path.join(upload_path, f"{receipt.image}.jpg")
+        
+        if os.path.exists(path):
+            os.remove(path)
+
         return receipt
 
     finally:

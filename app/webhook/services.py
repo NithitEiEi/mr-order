@@ -18,7 +18,7 @@ async def webhook (body: WebhookBody):
     sender = event.source['userId']
     group = event.source['groupId']
     reply = event.replyToken
-
+    
     if types == 'image':
         image = event.message.id
         async with httpx.AsyncClient() as client:
@@ -30,39 +30,42 @@ async def webhook (body: WebhookBody):
                 }
             )
 
-            profile = await get_sender_profile(group, sender)
-            name = profile['displayName']
+        profile = await get_sender_profile(group, sender)
+        name = profile['displayName']
 
-            if response.status_code == 400:
-                message = f"สลิปคุณ {name} ไม่ถูกต้องหรือใช้ซ้ำ"
-                raise AttributeError("Bad request")
-            
-            if response.status_code == 404:
-                raise AttributeError("Not found")
-            
-            if response.status_code == 500:
-                raise Exception("Something went wrong")
+        if response.status_code == 400:
+            message = f"สลิปคุณ {name} ไม่ถูกต้องหรือใช้ซ้ำ"
+            # raise AttributeError("Bad request")
+        
+        if response.status_code == 404:
+            raise AttributeError("Not found")
+        
+        if response.status_code == 500:
+            raise Exception("Something went wrong")
 
-            response_content = response.content.decode('utf-8')
-            data = json.loads(response_content)
+        response_content = response.content.decode('utf-8')
+        data = json.loads(response_content)
 
-            remain = data['remain']
-            
-            if remain == 0:
-                message = f"คุณ {name} โอนครบจำนวนครับ"
+        remain = data['remain']
+        
+        if remain == 0:
+            message = f"คุณ {name} โอนครบจำนวนครับ"
 
-            if remain < 0:
-                message = f"คุณ {name} โอนเงินเกินจำนวน ติดต่อผู้ขายเพื่อขอคืนเงิน"
+        if remain < 0:
+            message = f"คุณ {name} โอนเงินเกินจำนวน ติดต่อผู้ขายเพื่อขอคืนเงิน"
 
-            if remain > 0:
-                message = f"คุณ {name} ยอดชำระขาดอีก {remain} บาท"
+        if remain > 0:
+            message = f"คุณ {name} ยอดชำระขาดอีก {remain} บาท"
 
-            return callback(message, reply)
+        return await callback(message, reply)
 
     if types == 'text':
         await prisma.connect()
         text = event.message.text
         mentions = event.message.mention.get('mentionees', {}) if event.message.mention else []
+        if mentions[0]['type'] == "all": 
+            await prisma.disconnect()
+            return
         mentions = [mention.get('userId', []) for mention in mentions]
         menus = []
 

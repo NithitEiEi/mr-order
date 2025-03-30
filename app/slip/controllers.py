@@ -10,7 +10,9 @@ router = APIRouter()
 @router.post('/slip')
 async def create (body: WebhookSlip):
     try:
+        print("before go", body)
         slip = await service.create_slip(body)
+        print("slip", slip)
         return response(slip)
     
     except AttributeError:

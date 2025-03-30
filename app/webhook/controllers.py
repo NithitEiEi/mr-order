@@ -17,4 +17,5 @@ async def webhook (body: WebhookBody):
         return exception(400)
 
     except Exception as e:
+        print(e)
         return exception(500, e)
