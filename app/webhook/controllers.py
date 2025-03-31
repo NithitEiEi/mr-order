@@ -10,12 +10,10 @@ router = APIRouter()
 async def webhook (body: WebhookBody):
     try:
         result = await service.webhook(body)
-        print(result)
-        return response()
+        return response(result)
     
     except AttributeError as e:
         return exception(400)
 
     except Exception as e:
-        print(e)
         return exception(500, e)

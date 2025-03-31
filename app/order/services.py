@@ -239,7 +239,8 @@ async def update_order (body: UpdateOrder, id: str):
     try:
         await prisma.connect()
         data = dump(body, exclude={'detail'})
-        details = dump(body, include={'detail'}).get('detail')    
+        details = dump(body, include={'detail'}).get('detail')
+        data['remain'] = body.total;   
 
         async with prisma.tx() as transaction:
             result = await transaction.order.update(

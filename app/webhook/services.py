@@ -11,6 +11,8 @@ prisma = Prisma()
 
 load_dotenv()
 
+timeout = httpx.Timeout(30.0)
+
 async def webhook (body: WebhookBody):
 
     event = body.events[0]
@@ -22,32 +24,31 @@ async def webhook (body: WebhookBody):
     if types == 'image':
         image = event.message.id
         async with httpx.AsyncClient() as client:
+            print("sending")
             response = await client.post(
                 url="http://localhost:8000/slip",
                 json={
                     "customer": sender,
                     "image": image
-                }
+                },
+                timeout=timeout
             )
-
+            
         profile = await get_sender_profile(group, sender)
         name = profile['displayName']
 
         if response.status_code == 400:
             message = f"สลิปคุณ {name} ไม่ถูกต้องหรือใช้ซ้ำ"
-            # raise AttributeError("Bad request")
-        
-        if response.status_code == 404:
-            raise AttributeError("Not found")
-        
+            await callback(message, reply)
+            return
+
         if response.status_code == 500:
             raise Exception("Something went wrong")
 
-        response_content = response.content.decode('utf-8')
-        data = json.loads(response_content)
+        data = response.text
+        data = json.loads(data).get('data')
 
         remain = data['remain']
-        
         if remain == 0:
             message = f"คุณ {name} โอนครบจำนวนครับ"
 
@@ -57,15 +58,18 @@ async def webhook (body: WebhookBody):
         if remain > 0:
             message = f"คุณ {name} ยอดชำระขาดอีก {remain} บาท"
 
-        return await callback(message, reply)
+        await callback(message, reply)
+        await prisma.disconnect()
+        return
 
     if types == 'text':
         await prisma.connect()
         text = event.message.text
         mentions = event.message.mention.get('mentionees', {}) if event.message.mention else []
-        if mentions[0]['type'] == "all": 
+        if mentions[0]['type'] == "all" or not mentions:
             await prisma.disconnect()
             return
+        
         mentions = [mention.get('userId', []) for mention in mentions]
         menus = []
 
@@ -147,8 +151,6 @@ async def webhook (body: WebhookBody):
                     await callback(message, reply)
                 
                 return response.text
-        
-    await prisma.disconnect()
 
 async def callback(message: str, reply: str):
 
@@ -158,7 +160,7 @@ async def callback(message: str, reply: str):
             'messages': [
                 {
                     "type": "text",
-                    "text": message,
+                    "text": message
                 }    
             ],
         }
@@ -169,7 +171,8 @@ async def callback(message: str, reply: str):
                 "Authorization": f"Bearer {os.getenv('CHANNEL_ACCESS_TOKEN')}",
                 "Content-Type": "application/json"
             },
-            json=data
+            json=data,
+            timeout=timeout
         )
 
         return callback_response.text

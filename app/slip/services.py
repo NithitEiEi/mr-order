@@ -7,11 +7,9 @@ from PIL import Image
 from prisma import Prisma
 from dotenv import load_dotenv
 from handle.format import dump
-from slip.models import CreateSlip
 from slip.models import WebhookSlip
-from model.gemini import classify_img
 from model.prompt import slip_prompt
-from prisma.errors import RecordNotFoundError
+from model.gemini import classify_img
 
 prisma = Prisma()
 
@@ -35,50 +33,58 @@ async def create_slip(body: WebhookSlip):
             clean = re.sub('json', '', generate).strip("`")
             result = json.loads(clean)
 
-        if result['type'] == "slip":
-            print("in if")
-            shop = await prisma.shop.find_first(
+        if result['type'] != "slip":
+            return
+        
+        shop = await prisma.shop.find_first(
+            where={
+                'OR': [
+                    {'account': result['receiver']},
+                    {'account_eng': result['receiver']}
+                ]
+            }
+        )
+
+        order = await prisma.order.find_first(
+            where={
+                'customer': body.customer,
+                'shop': shop.id,
+                'process': "PENDING",
+                'payment': "TRANSFER"
+            }
+        )
+
+        existed = await prisma.slip.find_first(
+            where={
+                'ref': result['ref']
+            }
+        )
+
+        if not order or not shop or existed:
+            raise AttributeError()
+        
+        data = result
+        data['order'] = order.id
+        del data['type']
+        price = order.total
+        async with prisma.tx() as transaction:
+            data['status'] = "VALID" if data['amount'] == price else "INVALID"
+
+            slip = await transaction.slip.create(
+                data=data
+            )
+            remain = order.total - slip.amount
+            
+            order = await transaction.order.update(
                 where={
-                    'account': result['receiver']
+                    'id': slip.order
+                },
+                data={
+                    "remain": remain
                 }
             )
-
-            order = await prisma.order.find_first(
-                where={
-                    'customer': body.customer,
-                    'shop': shop.id,
-                    'process': "PENDING",
-                    'payment': "TRANSFER"
-                }
-            )
-            if not shop:
-                raise RecordNotFoundError
-            
-            if not order:
-                raise AttributeError
-            
-            data = result
-            data['order'] = order.id
-            del data['type']
-            price = order.total
-            async with prisma.tx() as transaction:
-                data['status'] = "VALID" if data['amount'] == price else "INVALID"
-
-                slip = await transaction.slip.create(
-                    data=data
-                )
-                remain = order.total - slip.amount
-                
-                order = await transaction.order.update(
-                    where={
-                        'id': slip.order
-                    },
-                    data={
-                        "remain": remain
-                    }
-                )
-            print("order", dump(order))
-            return dump(order)
+        
+        return dump(order)
             
     finally:
         await prisma.disconnect()

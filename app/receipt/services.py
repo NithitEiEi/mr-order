@@ -68,9 +68,6 @@ async def create_receipt (file: UploadFile, shop: str):
         result = result.strip("`")
         result = json.loads(result)
 
-        print(result)
-        print(not result['detail'])
-
         if result['type'] != "receipt" or not result['detail']:
             raise ValueError()
 

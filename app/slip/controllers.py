@@ -10,20 +10,12 @@ router = APIRouter()
 @router.post('/slip')
 async def create (body: WebhookSlip):
     try:
-        print("before go", body)
         slip = await service.create_slip(body)
-        print("slip", slip)
         return response(slip)
     
-    except AttributeError:
-        return exception(400)
-    
-    except AttributeError:
-        return exception(404)
-
-    except UniqueViolationError:
+    except AttributeError as e:
+        print(e)
         return exception(400)
 
     except Exception as e:
-        print(type(e), e)
         return exception(500, e)

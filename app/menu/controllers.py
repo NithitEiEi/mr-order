@@ -44,7 +44,6 @@ async def update (body: UpdateMenu, id: str):
 async def delete (id: str):
     try:
         menu = await service.delete_menu(id)
-        print(menu)
         return response(menu)
 
     except AttributeError as e:

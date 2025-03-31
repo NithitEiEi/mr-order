@@ -51,6 +51,9 @@ async def cancel (id: str):
         order = await service.cancel_order(id)
         return response(order)
     
+    except ValueError:
+        return exception(400)
+    
     except Exception as e:
         return exception(500, e)
     
@@ -82,4 +85,5 @@ async def update (body: UpdateOrder, id: str):
         return response(order)
 
     except Exception as e:
+        print(e)
         return exception(500, e)

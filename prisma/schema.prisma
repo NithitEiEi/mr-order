@@ -9,16 +9,17 @@ datasource db {
 }
 
 model Shop {
-  id         String       @id @default(uuid())
-  name       String       @unique    
-  user       String       @unique
-  open       Boolean      @default(false)
-  create     DateTime     @default(now())
-  account    String       @default("")
-  ingredient Ingredient[]
-  receipt    Receipt[]
-  menu       Menu[]
-  shop       Order[]
+  id          String       @id @default(uuid())
+  name        String       @unique    
+  user        String       @unique
+  open        Boolean      @default(false)
+  create      DateTime     @default(now())
+  account     String       @default("")
+  account_eng String       @default("")
+  ingredient  Ingredient[]
+  receipt     Receipt[]
+  menu        Menu[]
+  shop        Order[]
 }
 
 model Menu {
