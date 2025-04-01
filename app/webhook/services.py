@@ -66,7 +66,8 @@ async def webhook (body: WebhookBody):
         await prisma.connect()
         text = event.message.text
         mentions = event.message.mention.get('mentionees', {}) if event.message.mention else []
-        if mentions[0]['type'] == "all" or not mentions:
+        
+        if not mentions or (mentions and mentions[0].get('type') == "all"):
             await prisma.disconnect()
             return
         
